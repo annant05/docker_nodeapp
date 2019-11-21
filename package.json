@@ -1,0 +1,23 @@
+{
+  "name": "container_backend",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "annant",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "latest",
+    "cors": "2.8.5",
+    "ejs": "^2.6.1",
+    "express": "^4.16.4",
+    "jquery": "^3.3.1",
+    "log-timestamp": "^0.3.0",
+    "node-cmd": "^3.0.0",
+    "public-ip": "^3.0.0",
+    "request": "^2.87.0",
+    "mysql": "2.17.1"
+  },
+  "description": "Node Js application for Container docker backend"
+}
