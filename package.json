@@ -8,6 +8,7 @@
   "author": "annant",
   "license": "ISC",
   "dependencies": {
+    "supervisor":"0.12.0",
     "body-parser": "latest",
     "cors": "2.8.5",
     "ejs": "^2.6.1",

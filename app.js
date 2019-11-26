@@ -8,16 +8,16 @@ const bodyParser = require("body-parser");  // used bodyParser to get data from 
 require('log-timestamp');
 const mysql = require('mysql');
 const dbconnection = mysql.createConnection({
-    host: '172.17.0.2',
-    user: 'annant',
-    password: '12345678',
-    database: 'userdb'
+    host: process.env.DBCONNECTION,
+    user: process.env.DBUSER,
+    password: process.env.DBPASSWORD,
+    database: process.env.DBNAME
 });
 
 
 
 // Declaration related to servers
-const PORT = 8039 ;
+const PORT = 8039;
 
 request('http://169.254.169.254/latest/meta-data/public-ipv4', async function (error, response, body) {
     if (body !== undefined) console.log('\nserver started on ip:port : http://' + body + ":" + PORT);
