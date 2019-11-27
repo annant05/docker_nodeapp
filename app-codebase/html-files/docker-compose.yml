@@ -1,0 +1,49 @@
+version: "3"
+services:
+
+  # node js api to query mysql 
+  nodeapi:
+    image: annantguptacs15/nodeapi:latest
+    ports:
+      - 8039:8039
+    networks:
+      - backend
+      - frontend
+    environment: 
+      - DBCONNECTION=mysqldb  
+      - DBNAME=userdb
+      - DBPASSWORD=12345678 
+      - DBUSER=annant
+    depends_on:
+      - mysqldb
+    restart: on-failure
+
+
+  # mysql db for storing users
+  mysqldb:
+    image: annantguptacs15/sqldbtier:latest
+    command: --default-authentication-plugin=mysql_native_password
+    environment: 
+      MYSQL_DATABASE: userdb
+      MYSQL_USER: annant
+      MYSQL_PASSWORD: 12345678
+      MYSQL_ROOT_PASSWORD: 12345678
+    ports:
+      - "3306"
+    networks:
+      - backend
+
+  # Front end html form hosting using apache 
+  apache:
+    image: annantguptacs15/apachefrontend:latest
+    ports:
+      - 80:80
+    networks:
+      - frontend
+    depends_on:
+      - nodeapi
+
+
+networks:
+  frontend:
+  backend:
