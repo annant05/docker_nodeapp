@@ -1,5 +1,5 @@
 "use strict";
-const AWS = require('aws-sdk');
+const AWS = require("aws-sdk");
 AWS.config.update({ region: "us-east-1" });
 
 // const dbconnection = require('serverless-mysql')({
@@ -20,54 +20,70 @@ class Dynamodb {
     }
 
     async signup(email, password) {
-
         const params = {
             TableName: this.TABLE_NAME,
             Item: {
-                time_of_insertion: `${(Math.round((new Date()).getTime() / 1000)).toString()}`,
-                email: email + `${(Math.round((new Date()).getTime() / 1000)).toString()}`,
+                time_of_insertion: `${Math.round(
+                    new Date().getTime() / 1000
+                ).toString()}`,
+                email: email + `${Math.round(new Date().getTime() / 1000).toString()}`,
                 password: password
             }
-        }
+        };
         try {
-            
-            // the issue is here. It return is not sending the json object in resolve and reject functions.
- 
-            return await this.documentClient.put(params, (err, data) => {
                 return new Promise((resolve, reject) => {
-                    if (data)
-                        resolve({data:{status:true,data:data}});
-                    else if (err)
-                        reject({data:{status:false,err:err}});
-                    else 
-                        throw err;
+                     this.documentClient.put(params, (err, data) => {
+                        if (err) reject({ res: { status: false, merr: err } });
+                        else if (data) resolve({ res: { status: true, mdata: data } });
+                        // else throw err;
+                    });
+                    // request.get(url, function(error, response, data){
+                    //   if (error) reject(error);
+
+                    //   let content = JSON.parse(data);
+                    //           let fact = content.value;
+                    //           resolve(fact);
+                    //         })
                 });
-            });
+
+            // sig(params).then(data=>{console.log(data)});
+            // console.log(respons());
+
+            // the issue is here. It return is not sending the json object in resolve and reject functions.
+            // console.log(params);
+            // let res = await this.documentClient.put(params, (err, data) => {
+            //     new Promisr();
+            //     // console.log(JSON.stringify (data));
+            //     if (data) console.log({ data: { status: true, mdata: data } });
+            //     else if (err) console.log();
+            //     else throw err;
+            //     // let prom = new Promise((resolve, reject) => {
+
+            //     // });
+            //     // console.log(prom);
+            // });
+            // console.log(res);
             // console.log(result);
         } catch (err) {
             console.log("\nError in signup:  " + err);
         }
-
     }
-
 }
 
 const main = async () => {
     const db = new Dynamodb("nodeusers");
-            // or either i don't know how to extract json from a promise response her
-    let resposes = await db.signup("annant1", "pass1")
-        .then((data) => { return (data.json()); })
-        .catch((err) => { return (err.json()) });
+    // or either i don't know how to extract json from a promise response her
+    let resposes = await db.signup("annant1", "pass1").then((data) => { return(data) });
+
+    // console.log("res", resposes.then((data) => { return (data) }));
+    // .catch((err) => { return (err) });
+
     console.log("res", resposes);
-
-
-
-}
+};
 main();
 
 // exports.handler = async(event, context) => {
 //     // TODO implement
-
 
 //     const response = {
 //         statusCode: 200,

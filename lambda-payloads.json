@@ -1,0 +1,15 @@
+{
+    "node-api-back-end": {
+        "lambda": {}
+    },
+    "": {
+        "apigateway": {
+            "path": "",
+            "method": {
+                "value": "",
+                "items": []
+            },
+            "body": {}
+        }
+    }
+}
