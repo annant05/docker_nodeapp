@@ -2,83 +2,135 @@
 const AWS = require("aws-sdk");
 AWS.config.update({ region: "us-east-1" });
 
-// const dbconnection = require('serverless-mysql')({
-//     config: {
-//         host: "ip-172-31-13-87.ec2.internal",
-//         user: "annant",
-//         password: "12345678",
-//         database: "userdb"
-//     }
-// });
-
 class Dynamodb {
-    // TABLE_NAME= "";
-    // documentClient = ""   ;
     constructor(TABLE_NAME) {
         this.TABLE_NAME = TABLE_NAME;
         this.documentClient = new AWS.DynamoDB.DocumentClient();
     }
 
     async signup(email, password) {
+        const epoch = `${Math.round(new Date().getTime() / 1000).toString()}`;
         const params = {
             TableName: this.TABLE_NAME,
             Item: {
-                time_of_insertion: `${Math.round(
-                    new Date().getTime() / 1000
-                ).toString()}`,
-                email: email + `${Math.round(new Date().getTime() / 1000).toString()}`,
+                time_of_insertion: epoch,
+                email: email,
                 password: password
             }
         };
-        try {
-                return new Promise((resolve, reject) => {
-                     this.documentClient.put(params, (err, data) => {
-                        if (err) reject({ res: { status: false, merr: err } });
-                        else if (data) resolve({ res: { status: true, mdata: data } });
-                        // else throw err;
-                    });
-                    // request.get(url, function(error, response, data){
-                    //   if (error) reject(error);
 
-                    //   let content = JSON.parse(data);
-                    //           let fact = content.value;
-                    //           resolve(fact);
-                    //         })
+        return new Promise((resolve, reject) => {
+            try {
+                this.documentClient.put(params, (err, data) => {
+                    if (err) reject({ status: false, err: err });
+                    else if (data) resolve({ status: true, data: data });
                 });
-
-            // sig(params).then(data=>{console.log(data)});
-            // console.log(respons());
-
-            // the issue is here. It return is not sending the json object in resolve and reject functions.
-            // console.log(params);
-            // let res = await this.documentClient.put(params, (err, data) => {
-            //     new Promisr();
-            //     // console.log(JSON.stringify (data));
-            //     if (data) console.log({ data: { status: true, mdata: data } });
-            //     else if (err) console.log();
-            //     else throw err;
-            //     // let prom = new Promise((resolve, reject) => {
-
-            //     // });
-            //     // console.log(prom);
-            // });
-            // console.log(res);
-            // console.log(result);
-        } catch (err) {
-            console.log("\nError in signup:  " + err);
-        }
+            } catch (err) {
+                console.log("\nError in signup:  " + err);
+            }
+        });
     }
+
+    async login(email, password) {
+
+        const params = {
+            TableName: this.TABLE_NAME,
+            FilterExpression: '#str_email = :val_email and #str_password = :val_password',
+            ExpressionAttributeNames: {
+                "#str_email": "email",
+                "#str_password": "password"
+            },
+            ExpressionAttributeValues: {
+                ':val_email': email,
+                ':val_password': password
+            },
+            ProjectionExpression: "email"
+        };
+
+
+        // return new Promise((resolve, reject) => {
+        //     try {
+        //         this.documentClient.put(params, (err, data) => {
+        //             if (err) reject({ status: false, err: err });
+        //             else if (data) resolve({ status: true, data: data });
+        //         });
+        //     } catch (err) {
+        //         console.log("\nError in signup:  " + err);
+        //     }
+        // });
+
+
+        return new Promise((resolve, reject) => {
+            try {
+                this.documentClient.scan(params, (err, data) => {
+                    if (err) throw err;
+
+                    if (data.Count !== 0)
+                        resolve({ status: true, data: data.Items[0] });
+                    else
+                        resolve({ status: false, data: data });
+
+
+                    // if (err) {
+                    //     console.log("\nThere was some error ", err, err.stack);
+                    // }// an error occurred
+                    // else {
+                    //     console.log(data);
+                    //     console.log("\nUser recieved ", data.Count);
+                    //     if (err) 
+
+                    // }
+                    // this.documentClient.put(params, (err, data) => {
+                    //     if (err) reject({ status: false, err: err });node
+                    //     else if (data) resolve({ status: true, data: data });
+                    // });
+                });
+            } catch (err) {
+                console.log("\nError in signup:  " + err);
+            }
+
+        });
+    }
+    // const epoch = `${Math.round(new Date().getTime() / 1000).toString()}`;
+    // const params = {
+    //     TableName: this.TABLE_NAME,
+    //     Item: {
+    //         time_of_insertion: epoch,
+    //         email: email + epoch,
+    //         password: password
+    //     }
+    // };
+
+    // return new Promise((resolve, reject) => {
+    //     try {
+    //         this.documentClient.put(params, (err, data) => {
+    //             if (err) reject({ status: false, err: err });
+    //             else if (data) resolve({ status: true, data: data });
+    //         });
+    //     } catch (err) {
+    //         console.log("\nError in signup:  " + err);
+    //     }
+    // });
+
+
 }
 
 const main = async () => {
     const db = new Dynamodb("nodeusers");
-    // or either i don't know how to extract json from a promise response her
-    let resposes = await db.signup("annant1", "pass1").then((data) => { return(data) });
+    let responses = await db
+        .signup("annant1", "pass1")
+        .then(data => {return data; })
+        .catch(err => {return err;});
 
-    // console.log("res", resposes.then((data) => { return (data) }));
-    // .catch((err) => { return (err) });
+    if (responses.status) console.log("res  passed : ", responses);
+    else console.log("res  failed : ", responses);
 
-    console.log("res", resposes);
+    const res = await db.login("annant", "pass1")
+        .then(data => { return data; })
+        .catch(err => { return err; });;
+
+    console.log("Res : ", res);
+
 };
 main();
 
