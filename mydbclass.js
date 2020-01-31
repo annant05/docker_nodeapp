@@ -3,7 +3,7 @@
 const AWS = require("aws-sdk");
 AWS.config.update({ region: "us-east-1" });
 
-class Dynamodb {
+class MyDbClass {
     constructor(TABLE_NAME) {
         this.TABLE_NAME = TABLE_NAME;
         this.documentClient = new AWS.DynamoDB.DocumentClient();
@@ -67,4 +67,5 @@ class Dynamodb {
     }
 
 }
-module.exports.Dynamodb = Dynamodb;
+
+exports.MyDbClass = MyDbClass;
