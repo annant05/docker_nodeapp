@@ -8,7 +8,7 @@ class MyDbClass {
         this.documentClient = new AWS.DynamoDB.DocumentClient();
     }
 
-     signup(email, password) {
+    signup(email, password) {
         const epoch = `${Math.round(new Date().getTime() / 1000).toString()}`;
         const params = {
             TableName: this.TABLE_NAME,
@@ -22,8 +22,11 @@ class MyDbClass {
         return new Promise((resolve, reject) => {
             try {
                 this.documentClient.put(params, (err, data) => {
-                    if (err) reject({ status: false, err: err });
-                    else if (data) resolve({ status: true, data: data });
+                    if (err) {
+                        console.log(err);
+                        reject({ status: false });
+                    }
+                    else if (data) resolve({ status: true });
                 });
             } catch (err) {
                 console.log("\nError in signup:  " + err);
@@ -31,7 +34,7 @@ class MyDbClass {
         });
     }
 
-     login(email, password) {
+    login(email, password) {
 
         const params = {
             TableName: this.TABLE_NAME,
@@ -52,12 +55,12 @@ class MyDbClass {
             try {
                 this.documentClient.scan(params, (err, data) => {
                     if (err) throw err;
-
-                    if (data.Count !== 0)
-                        resolve({ status: true, data: data.Items[0] });
+                    // data.Count !== 0 &&
+                    if (data.Count === 1)
+                        resolve({ status: true });
                     else
-                        resolve({ status: false, data: data });
-           });
+                        resolve({ status: false });
+                });
             } catch (err) {
                 console.log("\nError in signup:  " + err);
             }
@@ -67,52 +70,44 @@ class MyDbClass {
 
 }
 
-// const main = async () => {
-//     let responses = await db
-//         .signup("annant2", "pass2")
-//         .then(data => {return data; })
-//         .catch(err => {return err;});
-
-//     if (responses.status) console.log("res  passed : ", responses);
-//     else console.log("res  failed : ", responses);
-
-//     // const res = await db.login("annant", "pass1")
-//     //     .then(data => { return data; })
-//     //     .catch(err => { return err; });;
-
-//     // console.log("Res : ", res);
-
-// };
-// main();
-
-exports.handler = async(event, context) => {
+exports.handler =  async (event, context) => {
     // TODO implement
-    const db = new  MyDbClass("nodeusers");
+    const db = new MyDbClass("nodeusers");
 
     const response = {
         statusCode: 200,
         body: null,
-         headers: {
-        "Access-Control-Allow-Origin": "*"
-         }
+        headers: {
+            "Access-Control-Allow-Origin": "*"
+        }
     };
 
     let loginJsonObject = JSON.parse(event.body).loginJsonObject;
     console.log(loginJsonObject);
+    // const loginJsonObject={
+    //     email:"myemail",
+    //     password:"mypass"
+    // }
+
+    let email = loginJsonObject.email;
+    let password = loginJsonObject.password;
 
     switch (event.path) {
         case "/signup":
             {
-                let email = loginJsonObject.email;
-                let password = loginJsonObject.password;
                 try {
                     console.log("start try block");
-                    let results = await dbconnection.query(`insert into users values("${email}" ,"${password}")`);
-                    console.log(results);
-                    console.log("end try block");
-                    response.body = JSON.stringify({ userExists: true });
-                }
-                catch (e) {
+                    let result = await db
+                        .signup(email, password)
+                        .then(data => { return data; })
+                        .catch(err => { return err; });
+
+                    if (result.status)
+                        response.body = JSON.stringify({ userExists: true });
+                    else
+                        response.body = JSON.stringify({ userExists: false });
+
+                } catch (e) {
                     console.log("exception e : " + e);
                     response.body = JSON.stringify({ userExists: false });
                 }
@@ -121,13 +116,16 @@ exports.handler = async(event, context) => {
 
         case "/login":
             {
-                let email = loginJsonObject.email;
-                let password = loginJsonObject.password;
                 try {
-                    let results = await dbconnection.query(
-                        `SELECT count(*) from users WHERE email="${email}" AND password="${password}"`);
-                    if (results[0]["count(*)"]) response.body = JSON.stringify({ userExists: true });
-                    else response.body = JSON.stringify({ userExists: false });
+                    const result = await db
+                        .login(email, password)
+                        .then(data => { return data; })
+                        .catch(err => { return err; });;
+
+                    if (result.status)
+                        response.body = JSON.stringify({ userExists: true });
+                    else
+                        response.body = JSON.stringify({ userExists: false });
                 }
                 catch (e) {
                     console.log("exception e : " + e);
@@ -138,9 +136,13 @@ exports.handler = async(event, context) => {
             break;
 
         default:
-            // code
+        // code
     }
-
-    await dbconnection.end();
+    console.log("lambda function executed succesfully");
     return response;
 };
+// const event= {
+//     path:"/signup"
+
+// }
+// lambda(event,null);

@@ -1,6 +1,16 @@
 {
     "node-api-back-end": {
-        "lambda": {}
+        "lambda": {
+            "body": "eyJ0ZXN0IjoiYm9keSJ9",
+            "resource": "/{proxy+}",
+            "path": "/login",
+            "httpMethod": "POST",
+            "isBase64Encoded": true,
+            "queryStringParameters": {
+                "email": "a6547@email.com",
+                "password": "helloworld"
+            }
+        }
     },
     "": {
         "apigateway": {
